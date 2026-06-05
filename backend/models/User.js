@@ -19,6 +19,27 @@ const UserSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    role: {
+      type: String,
+      enum: ['user', 'admin'],
+      default: 'user',
+    },
+    storageLimit: {
+      type: Number,
+      default: 100 * 1024 * 1024, // 100 MB default
+    },
+    storageUsed: {
+      type: Number,
+      default: 0,
+    },
+    twoFactorCode: {
+      type: String,
+      default: null,
+    },
+    twoFactorExpires: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,

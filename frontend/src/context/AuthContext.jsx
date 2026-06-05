@@ -45,14 +45,45 @@ export const AuthProvider = ({ children }) => {
   const register = async (name, email, password) => {
     const { data } = await api.post('/auth/register', { name, email, password });
     localStorage.setItem('cloudvault_token', data.token);
-    setUser({ _id: data._id, name: data.name, email: data.email });
+    setUser({ 
+      _id: data._id, 
+      name: data.name, 
+      email: data.email, 
+      role: data.role || 'user',
+      storageUsed: data.storageUsed || 0,
+      storageLimit: data.storageLimit || 100 * 1024 * 1024
+    });
     return data;
   };
 
   const login = async (email, password) => {
     const { data } = await api.post('/auth/login', { email, password });
+    if (data.twoFactorRequired) {
+      return data;
+    }
     localStorage.setItem('cloudvault_token', data.token);
-    setUser({ _id: data._id, name: data.name, email: data.email });
+    setUser({ 
+      _id: data._id, 
+      name: data.name, 
+      email: data.email, 
+      role: data.role || 'user',
+      storageUsed: data.storageUsed || 0,
+      storageLimit: data.storageLimit || 100 * 1024 * 1024
+    });
+    return data;
+  };
+
+  const verify2FA = async (email, code) => {
+    const { data } = await api.post('/auth/verify-2fa', { email, code });
+    localStorage.setItem('cloudvault_token', data.token);
+    setUser({ 
+      _id: data._id, 
+      name: data.name, 
+      email: data.email, 
+      role: data.role,
+      storageUsed: data.storageUsed || 0,
+      storageLimit: data.storageLimit || 100 * 1024 * 1024
+    });
     return data;
   };
 
@@ -61,8 +92,17 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  const refreshUserContext = async () => {
+    try {
+      const { data } = await api.get('/auth/me');
+      setUser(data);
+    } catch (err) {
+      console.error('Failed to refresh user context', err);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, api }}>
+    <AuthContext.Provider value={{ user, loading, login, register, verify2FA, logout, refreshUserContext, api }}>
       {children}
     </AuthContext.Provider>
   );

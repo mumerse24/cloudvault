@@ -17,6 +17,18 @@ const FolderSchema = new mongoose.Schema(
       ref: 'Folder',
       default: null,
     },
+    isStarred: {
+      type: Boolean,
+      default: false,
+    },
+    isTrashed: {
+      type: Boolean,
+      default: false,
+    },
+    trashedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,

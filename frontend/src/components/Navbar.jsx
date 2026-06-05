@@ -1,34 +1,49 @@
-import { Link } from 'react-router-dom';
+import React from 'react';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, User } from 'lucide-react';
+import { Search, Bell } from 'lucide-react';
 
-const Navbar = () => {
-  const { user, logout } = useAuth();
-
-  const handleLogout = () => {
-    logout();
-  };
+const Navbar = ({ searchQuery, setSearchQuery, notificationsCount = 0, onNotificationsClick }) => {
+  const { user } = useAuth();
 
   return (
-    <nav className="navbar">
-      <Link to="/" className="nav-brand">
-        <div className="nav-logo">CV</div>
-        <span className="nav-title">CloudVault</span>
-      </Link>
-      {user && (
-        <div className="nav-user">
-          <div className="user-profile">
-            <div className="avatar">
-              <User size={20} />
-            </div>
-            <span className="user-name">{user.name}</span>
-          </div>
-          <button className="btn btn-danger" onClick={handleLogout}>
-            <LogOut size={16} /> Logout
-          </button>
+    <header className="app-navbar">
+      {setSearchQuery !== undefined ? (
+        <div className="search-container">
+          <Search size={18} style={{ color: 'var(--text-muted)' }} />
+          <input
+            type="text"
+            className="search-input"
+            placeholder="Search files and folders..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
         </div>
+      ) : (
+        <div style={{ flex: 1 }} />
       )}
-    </nav>
+
+      <div className="navbar-right">
+        {user && (
+          <>
+            <button 
+              className="notifications-trigger" 
+              onClick={onNotificationsClick}
+              title="Real-time Notifications"
+              style={{ padding: '0.5rem', borderRadius: '8px', transition: 'var(--transition-smooth)' }}
+            >
+              < Bell size={20} />
+              {notificationsCount > 0 && <span className="notification-badge" />}
+            </button>
+            <div className="user-profile-widget">
+              <div className="user-avatar" title={user.email}>
+                {user.name ? user.name[0].toUpperCase() : 'U'}
+              </div>
+              <span className="user-name" style={{ fontWeight: 600, fontSize: '0.95rem' }}>{user.name}</span>
+            </div>
+          </>
+        )}
+      </div>
+    </header>
   );
 };
 

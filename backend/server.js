@@ -1,12 +1,41 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const http = require('http');
+const { Server } = require('socket.io');
 const connectDB = require('./config/db');
 
 // Connect to Database
 connectDB();
 
 const app = express();
+const server = http.createServer(app);
+
+// Socket.io setup
+const io = new Server(server, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST'],
+  },
+});
+
+// Expose io globally
+global.io = io;
+
+io.on('connection', (socket) => {
+  console.log('New client connected:', socket.id);
+
+  socket.on('join', (userId) => {
+    if (userId) {
+      socket.join(userId);
+      console.log(`Socket client ${socket.id} joined room (user): ${userId}`);
+    }
+  });
+
+  socket.on('disconnect', () => {
+    console.log('Client disconnected:', socket.id);
+  });
+});
 
 // Middleware
 app.use(cors());
@@ -22,6 +51,8 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/folders', require('./routes/folders'));
 app.use('/api/files', require('./routes/files'));
+app.use('/api/activity', require('./routes/activity'));
+app.use('/api/admin', require('./routes/admin'));
 
 // 404 Route handler
 app.use((req, res, next) => {
@@ -37,6 +68,6 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
 });
